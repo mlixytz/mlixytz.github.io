@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <title>Mlixytz的博客</title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/gitalk.css">
+
+    
+<link rel="stylesheet" href="/css/font.css">
+
+    <link rel="icon" href="/assets/img/favicon.png">
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+<header class="header">
+    <div class="header-inner">
+        <div class="header-title">
+
+        </div>
+        <nav class="header-nav">
+            
+            <a href="/" class="header-nav-link" >
+                首页
+            </a>
+            
+
+            
+            <a href="/categories" class="header-nav-link">
+                分类
+            </a>
+            
+
+            
+                <a href="/tags" class="header-nav-link">
+                    标签
+                </a>
+                
+
+            
+            <a href="/archives" class="header-nav-link">
+                归档
+            </a>
+            
+
+            
+            <a href="/about/" class="header-nav-link">
+                关于
+            </a>
+            
+        </nav>
+    </div>
+</header>
+<header class="mobile-header">
+    <div class="mobile-nav">
+        <div class="mobile-nav-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="mobile-nav-title">
+            <a href="/" class="mobile-nav-title-link">Mlixytz's Blog</a>
+        </div>
+
+    </div>
+    <nav class="mobile-menu">
+        <ul class="mobile-menu-list">
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-home"></i>
+                <a href="/" class="mobile-nav-link">首页</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-archive"></i>
+                <a href="/archives" class="mobile-nav-link">归档</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-tag"></i>
+                <a href="/tags" class="mobile-nav-link">标签</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-about"></i>
+                <a href="/about/" class="mobile-nav-link">关于</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<div class="main">
+    <div class="content-inner">
+        <div class="posts">
+    <article class="post-whole">
+        <div class="post-title">
+            <h2 class="title">Kubernetes Informer机制源码分析</h2>
+            <div class="post-meta">
+                <span class="post-time">2020-10-09</span>
+                
+                <span class="post-category">
+                    
+                    <a class="category" href="/categories/kubernetes%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">kubernetes源码分析</a>
+                    
+                </span>
+                
+            </div>
+        </div>
+        <div class="post-toc" id="post-toc">
+    <strong class="post-toc-title">目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Kubernetes-Informer机制源码分析"><span class="toc-text">Kubernetes Informer机制源码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#简介"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#启动分析"><span class="toc-text">启动分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#podInformer初始化"><span class="toc-text">podInformer初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#podInformer启动"><span class="toc-text">podInformer启动</span></a></li></ol></li></ol></li></ol>
+    <div class="back-to-top" id="back-to-top">
+        <a href="javascript:void(0);">回到顶部</a>
+    </div>
+</div>
+        <div class="post-content">
+            <h1 id="Kubernetes-Informer机制源码分析"><a href="#Kubernetes-Informer机制源码分析" class="headerlink" title="Kubernetes Informer机制源码分析"></a>Kubernetes Informer机制源码分析</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>k8s中所有组件都是通过informer和api-server通讯的，下面以kube-shceduler中的podInformer启动过程作为示例来分析informer机制<br><img src="informer.png" alt=""></p>
+<h2 id="启动分析"><a href="#启动分析" class="headerlink" title="启动分析"></a>启动分析</h2><h3 id="podInformer初始化"><a href="#podInformer初始化" class="headerlink" title="podInformer初始化"></a>podInformer初始化</h3><p>kube-scheduler配置文件初始化时会初始化podInformer对象，具体的方法是<br>NewPodInformer（pkg/scheduler/factory.go[line:435]）</p>
+<p>创建ListWatch对象</p>
+<p>创建informer对象</p>
+<p>indexer说明<br>indexer基于ThreadSafeMap做了封装</p>
+<h3 id="podInformer启动"><a href="#podInformer启动" class="headerlink" title="podInformer启动"></a>podInformer启动</h3><p>kube-scheduler对象启动之前会启动个协程来运行podInformer<br>Run（staging/src/k8s.io/client-go/tools/cache/shared_informer.go[line:293]）</p>
+<p>核心逻辑是：<br>    0.    初始化DeltaFIFO<br>    0.    初始化controller<br>    0.    运行process.Run方法<br>    0.    运行controller.Run方法</p>
+<p>DeltaFIFO说明</p>
+<p>DeltaFIFO用来存储监听 api 返回的各种事件，队列中存在拥有不同操作类型的相同资源对象，其实现了Queue接口，Queue接口继承了Store接口，核心功能有：<br>    0.    生产者方法<br>生产者方法包括add、update、delete方法，以Add方法举例</p>
+<p>将事件转成Delta对象，加入到队列中<br>    0.    消费者方法：详见controller.processLoop调用<br>    0.    Resync机制：负责定期将indexer本地存储的资源对象同步到DeltaFIFO中，并设置资源类型为Sync类型</p>
+<p>process.run说明</p>
+<p>给每个listeners对象启动两个协程，分别运行listener对象的run、pop方法。<br>    0.    run方法周期性的执行，主要是从自己的nextCh通道中获取从api-server得到的增量信息，然后调用handler的相关方法负责消费事件</p>
+<pre><code>0.    pop方法主要是向nextCh通道中生产消息，生产的消息来源于addCh通道，processorListener使用了缓存，每次从缓存队列中取出一个notification对象到nextCh中</code></pre><p>controller.Run说明</p>
+<p>核心逻辑：<br>    0.    初始化Reflector<br>    0.    调用Reflector的Run方法<br>    0.    调用controller的processLoop方法</p>
+<p>Reflector介绍</p>
+<p>reflector用于监控指定的k8s资源，存储并触发变更事件<br>Reflector.Run方法</p>
+<p>执行ListAndWatch方法<br>核心逻辑：<br>    0.    List<br>    0.    Resync<br>    0.    Watch</p>
+<p>watchHandler方法</p>
+<p>watchHandler函数处理watch到的各个事件，所有的事件都存放在ResultChan中，包括事件类型，资源对象</p>
+<p>controller.processLoop方法</p>
+<p>从队列中获取元素，并执行PopPorcessFunc(c.config.Process)方法处理元素，c.config.Process方法对应s.HandleDeltas方法</p>
+<p>HandleDeltas方法</p>
+<p>核心逻辑：<br>    0.    更新本地缓存indexer<br>    0.    将事件通知到所有的listener，其实就是往listener的addCh中放入数据，供消费者消费</p>
+<p>kube-scheduler的注册事件是在创建schedule对象时，AddAllEventHandlers（pkg/scheduler/scheduler.go[line:378]），在函数内部创建了processListener，用来处理将podInformer监听到的pod变化更新到sched的处理队列中</p>
+
+        </div>
+        
+        <div class="post-tag">
+            
+            <a class="tag" href="/tags/kubernetes/" title="kubernetes">kubernetes</a>
+            
+            <a class="tag" href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/" title="云原生">云原生</a>
+            
+        </div>
+        
+    </article>
+</div>
+<div class="paginator">
+    
+        
+        
+            <a class="next" href="/2020/03/08/itertools-combinations/">
+                <span class="nav-default">python itertools.combinations函数实现分析</span>
+                <span class="nav-mobile">下一篇</span>
+                <i class="iconfont icon-next"></i>
+            </a>
+        
+    
+</div>
+<div id="gitalk-container"></div>
+    </div>
+</div>
+<footer class="footer-social">
+    
+    <a class="social-link" target="_blank" href="https://github.com/mlixytz">
+        <i class="iconfont icon-github"></i>
+    </a>
+    
+
+    
+
+    
+
+    <div class="footer-copyright">
+        <p class="time-line">
+            &copy;
+            
+            
+            2020
+            &nbsp;<i class="iconfont icon-heart"></i>&nbsp;
+            <a target="_blank" href="https://github.com/iJinxin">Mlixytz</a>
+        </p>
+        <p class="theme-info">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>  |  Theme -
+            <a target="_blank" href="https://github.com/iJinxin/hexo-theme-sky">Sky</a>
+        </p>
+    </div>
+</footer>
+</body>
+
+<script src="/js/jquery.min.js"></script>
+
+
+<script src="/js/index.js"></script>
+
+
+<script src="/js/gitalk.min.js"></script>
+
+<script>
+    
+    var gitalk = new Gitalk({
+        clientID: '6733e682fbf7d19631fb',
+        clientSecret: '655e1b038c0f3fc197467211b166d564585eef79',
+        repo: 'mlixytz.github.io',
+        owner: 'mlixytz',
+    })
+
+    gitalk.render('gitalk-container')
+    
+
+</script>
+</html>
