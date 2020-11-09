@@ -199,6 +199,8 @@
         repo: 'mlixytz.github.io',
         owner: 'mlixytz',
         admin: ['mlixytz'],
+        id: md5(location.pathname),
+        distractionFreeMode: false
     })
 
     gitalk.render('gitalk-container')

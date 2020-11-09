@@ -92,22 +92,12 @@
         <div class="tags">
     <div class="tags-list">
         
-            <a class="tags-list-item" href="#kubernetes源码分析" title="kubernetes源码分析">kubernetes源码分析</a>
-        
             <a class="tags-list-item" href="#算法" title="算法">算法</a>
+        
+            <a class="tags-list-item" href="#kubernetes源码分析" title="kubernetes源码分析">kubernetes源码分析</a>
         
     </div>
     <div class="tags-archives">
-        
-            <span class="tag-text">kubernetes源码分析</span>
-            
-                <div class="tags-post">
-                    <span class="tags-post-time">2020-10-09</span>
-                    <span class="tags-post-title">
-                        <a class="tags-post-link" href="/2020/10/09/kubernetes-informer/">Kubernetes Informer机制源码分析</a>
-                    </span>
-                </div>
-            
         
             <span class="tag-text">算法</span>
             
@@ -115,6 +105,16 @@
                     <span class="tags-post-time">2020-03-08</span>
                     <span class="tags-post-title">
                         <a class="tags-post-link" href="/2020/03/08/itertools-combinations/">python itertools.combinations函数实现分析</a>
+                    </span>
+                </div>
+            
+        
+            <span class="tag-text">kubernetes源码分析</span>
+            
+                <div class="tags-post">
+                    <span class="tags-post-time">2020-10-09</span>
+                    <span class="tags-post-title">
+                        <a class="tags-post-link" href="/2020/10/09/kubernetes-informer/">Kubernetes Informer机制源码分析</a>
                     </span>
                 </div>
             
@@ -168,6 +168,8 @@
         repo: 'mlixytz.github.io',
         owner: 'mlixytz',
         admin: ['mlixytz'],
+        id: md5(location.pathname),
+        distractionFreeMode: false
     })
 
     gitalk.render('gitalk-container')
